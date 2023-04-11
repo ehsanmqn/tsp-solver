@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  tsp-solver:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    command: bash -c "python main.py"
+    container_name: tsp-solver
+    hostname: tsp-solver
+    volumes:
+      - ./:/tsp-solver
+    stdin_open: true
+    tty: true
+    networks:
+      - shared_network
+    environment:
+      - MESSAGE_BROKER=rabbitmq
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    hostname: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+      - RABBITMQ_DEFAULT_VHOST=/
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - shared_network
+
+networks:
+  shared_network:
+    driver: bridge
