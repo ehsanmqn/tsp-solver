@@ -38,7 +38,27 @@ def print_solution(manager, routing, solution):
     plan_output += 'Route distance: {}miles\n'.format(route_distance)
 
 
-def tsp_solver(distance_matrix):
+def get_routes(solution, routing, manager):
+    """
+    Get vehicle routes from a solution and store them in an array. i,j entry is the jth location visited by vehicle i along its route.
+    :param solution: The ortools routing solution object
+    :param routing: The routing object
+    :param manager: The manager object
+    :return: List containing available routes
+    """
+
+    routes = []
+    for route_nbr in range(routing.vehicles()):
+        index = routing.Start(route_nbr)
+        route = [manager.IndexToNode(index)]
+        while not routing.IsEnd(index):
+            index = solution.Value(routing.NextVar(index))
+            route.append(manager.IndexToNode(index))
+        routes.append(route)
+    return routes
+
+
+def ortools_tsp_solver(distance_matrix):
     """
     Entry point for finding the optimal path between points
     :return:
@@ -75,5 +95,9 @@ def tsp_solver(distance_matrix):
     solution = routing.SolveWithParameters(search_parameters)
 
     # Print solution on console.
-    if solution:
-        print_solution(manager, routing, solution)
+    routes = get_routes(solution, routing, manager)
+
+    if solution and len(routes) > 0:
+        return solution.ObjectiveValue(), routes
+    else:
+        raise Exception("Could not find an optimal route.")

@@ -5,6 +5,6 @@ RUN mkdir /tsp-solver
 
 WORKDIR /tsp-solver
 
-ADD . /tsp-spver
+ADD . /tsp-solver
 
 RUN pip install -r requirements.txt
