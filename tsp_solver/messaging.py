@@ -1,6 +1,5 @@
 import json
 import math
-import numpy
 import pika
 
 from tsp_solver.solver import ortools_vrp_solver

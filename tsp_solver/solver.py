@@ -73,7 +73,7 @@ def get_routes(solution, routing, manager):
     return routes
 
 
-def ortools_vrp_solver(distance_matrix, depot, num_vehicles, max_distance, cost_coefficient):
+def ortools_vrp_solver(distance_matrix, depot: int, num_vehicles: int, max_distance: int, cost_coefficient: int):
     """
     Entry point for finding the optimal path between points using the ortools library
     :param cost_coefficient: Cost proportional to the *global* dimension span, that is the
@@ -85,6 +85,13 @@ def ortools_vrp_solver(distance_matrix, depot, num_vehicles, max_distance, cost_
     :param distance_matrix: The distance matrix is an array whose i, j entry is the distance from location i to location j in miles.
     :return: Optimal routes
     """
+
+    # Validate inputs
+    assert len(distance_matrix) == len(distance_matrix[0]), "The distance matrix does not have equal rows and columns."
+    assert depot >= 0, "depot should be greater than or equal to zero."
+    assert num_vehicles >= 0, "Number of vehicles should be greater than or equal to zero."
+    assert max_distance >= 0, "Max distance should be greater than or equal to zero."
+    assert cost_coefficient >= 0, "Cost coefficient should be greater than or equal to zero."
 
     # Instantiate the data problem.
     data = create_data_model(distance_matrix, depot, num_vehicles)
@@ -114,9 +121,9 @@ def ortools_vrp_solver(distance_matrix, depot, num_vehicles, max_distance, cost_
     dimension_name = 'Distance'
     routing.AddDimension(
         transit_callback_index,
-        0,      # no slack
-        max_distance,   # vehicle maximum travel distance
-        True,   # start cumul to zero
+        0,  # no slack
+        max_distance,  # vehicle maximum travel distance
+        True,  # start cumul to zero
         dimension_name)
     distance_dimension = routing.GetDimensionOrDie(dimension_name)
     distance_dimension.SetGlobalSpanCostCoefficient(cost_coefficient)
@@ -129,16 +136,9 @@ def ortools_vrp_solver(distance_matrix, depot, num_vehicles, max_distance, cost_
     # Solve the problem.
     solution = routing.SolveWithParameters(search_parameters)
 
-    # Print solution on console.
     if solution:
-        print_solution(data, manager, routing, solution)
-    else:
-        print('No solution found!')
-
-    # Get routes from the solution
-    routes = get_routes(solution, routing, manager)
-    print(">>>>> ", routes)
-    if solution and len(routes) > 0:
+        # Get routes from the solution
+        routes = get_routes(solution, routing, manager)
         return routes
     else:
         raise Exception("Could not find an optimal route.")
