@@ -3,7 +3,9 @@ import math
 import numpy
 import pika
 
-from tsp_solver.solver import ortools_tsp_solver
+from tsp_solver.solver import ortools_vrp_solver
+
+scale_factor = 100
 
 
 class TspRequest:
@@ -11,9 +13,11 @@ class TspRequest:
     The request message format
     """
 
-    def __init__(self, id, locations):
+    def __init__(self, id, locations, depot, num_vehicles):
         self.id = id
         self.locations = locations
+        self.depot = depot
+        self.num_vehicles = num_vehicles
 
 
 class TspResponse:
@@ -21,10 +25,9 @@ class TspResponse:
     The response message format
     """
 
-    def __init__(self, id, solution, distance, code, message):
+    def __init__(self, id, solution, code, message):
         self.id = id
         self.solution = solution
-        self.distance = distance
         self.code = code
         self.message = message
 
@@ -36,14 +39,12 @@ def euclidean_distance(p, q):
     :param q: Location 2
     :return: Distance between p, and q
     """
-    return math.sqrt((p['latitude'] - q['latitude']) ** 2 + (p['longitude'] - q['longitude']) ** 2)
+    return int(math.sqrt((p['latitude'] - q['latitude']) ** 2 + (p['longitude'] - q['longitude']) ** 2) * scale_factor)
 
 
 def generate_distances(request):
     distances = [[euclidean_distance(request.locations[i], request.locations[j]) for j in range(len(request.locations))]
                  for i in range(len(request.locations))]
-
-    distances = numpy.rint(numpy.array(distances) * 100).astype(int)
 
     return distances
 
@@ -54,14 +55,19 @@ def process_message(channel, method, properties, body):
     :param channel: Message channel
     :param body: Message body
     """
-    request = TspRequest(**json.loads(body.decode('utf-8')))
-    distances = generate_distances(request)
+    json_data = json.loads(body.decode('utf-8'))
+    request = TspRequest(**json_data)
+    distance_matrix = generate_distances(request)
 
     try:
-        distance, routes = ortools_tsp_solver(distances)
-        response = TspResponse(request.id, routes[0], distance, 200, "Operation successful.")
+        routes = ortools_vrp_solver(distance_matrix=distance_matrix,
+                                    depot=json_data['depot'],
+                                    num_vehicles=json_data['num_vehicles'],
+                                    max_distance=100000,
+                                    cost_coefficient=100)
+        response = TspResponse(request.id, routes, 200, "Operation successful.")
     except Exception as e:
-        response = TspResponse(request.id, None, None, 404, str(e))
+        response = TspResponse(request.id, None, 404, str(e))
 
     outbound_message = json.dumps(response.__dict__)
     channel.basic_publish(exchange='', routing_key='TSP_OUTPUT_QUEUE', body=outbound_message)

@@ -2,40 +2,47 @@ from ortools.constraint_solver import routing_enums_pb2
 from ortools.constraint_solver import pywrapcp
 
 
-def create_data_model(distance_matrix):
+def create_data_model(distance_matrix, depot, num_vehicles):
     """
     Store the data for the problem
-    :param distance_matrix: The distance matrix is an array whose i, j entry is the distance from location i to location j in miles, where the array indices correspond to the locations in the following order:
+    :param num_vehicles: The number of vehicles in the fleet.
+    :param depot: The start and end location for the route.
+    :param distance_matrix: The distance matrix is an array whose i, j entry is the distance from location i to location j in miles.
     :return: Json data
     """
-
     data = {
         'distance_matrix': distance_matrix,
-        'num_vehicles': 1,
-        'depot': 0
+        'num_vehicles': num_vehicles,
+        'depot': depot
     }
     return data
 
 
-def print_solution(manager, routing, solution):
+def print_solution(data, manager, routing, solution):
     """
     The function displays the optimal route and its distance, which is given by ObjectiveValue().
+    :param data: Problem json data created by the create_data_model function
     :param manager: Index manager
     :param routing: Routing model
     :param solution: The solution calculated by the ortools optimizer
     """
-    print('Objective: {} miles'.format(solution.ObjectiveValue()))
-    index = routing.Start(0)
-    plan_output = 'Route for vehicle 0:\n'
-    route_distance = 0
-    while not routing.IsEnd(index):
-        plan_output += ' {} ->'.format(manager.IndexToNode(index))
-        previous_index = index
-        index = solution.Value(routing.NextVar(index))
-        route_distance += routing.GetArcCostForVehicle(previous_index, index, 0)
-    plan_output += ' {}\n'.format(manager.IndexToNode(index))
-    print(plan_output)
-    plan_output += 'Route distance: {}miles\n'.format(route_distance)
+    print(f'Objective: {solution.ObjectiveValue()}')
+    max_route_distance = 0
+    for vehicle_id in range(data['num_vehicles']):
+        index = routing.Start(vehicle_id)
+        plan_output = 'Route for vehicle {}:\n'.format(vehicle_id)
+        route_distance = 0
+        while not routing.IsEnd(index):
+            plan_output += ' {} -> '.format(manager.IndexToNode(index))
+            previous_index = index
+            index = solution.Value(routing.NextVar(index))
+            route_distance += routing.GetArcCostForVehicle(
+                previous_index, index, vehicle_id)
+        plan_output += '{}\n'.format(manager.IndexToNode(index))
+        plan_output += 'Distance of the route: {}m\n'.format(route_distance)
+        print(plan_output)
+        max_route_distance = max(route_distance, max_route_distance)
+    print('Maximum of the route distances: {}m'.format(max_route_distance))
 
 
 def get_routes(solution, routing, manager):
@@ -51,21 +58,36 @@ def get_routes(solution, routing, manager):
     for route_nbr in range(routing.vehicles()):
         index = routing.Start(route_nbr)
         route = [manager.IndexToNode(index)]
+        route_distance = 0
         while not routing.IsEnd(index):
+            previous_index = index
             index = solution.Value(routing.NextVar(index))
             route.append(manager.IndexToNode(index))
-        routes.append(route)
+            route_distance += routing.GetArcCostForVehicle(
+                previous_index, index, route_nbr)
+        routes.append({
+            "route": route,
+            "vehicle": route_nbr,
+            "distance": route_distance
+        })
     return routes
 
 
-def ortools_tsp_solver(distance_matrix):
+def ortools_vrp_solver(distance_matrix, depot, num_vehicles, max_distance, cost_coefficient):
     """
-    Entry point for finding the optimal path between points
-    :return:
+    Entry point for finding the optimal path between points using the ortools library
+    :param cost_coefficient: Cost proportional to the *global* dimension span, that is the
+        difference between the largest value of route end cumul variables and
+        the smallest value of route start cumul variables.
+    :param max_distance: Vehicle maximum travel distance
+    :param num_vehicles: The number of vehicles in the fleet. If set 1, it would be TSP. (For a vehicle routing problem (VRP), the number of vehicles can be greater than 1.)
+    :param depot: The start and end location for the route.
+    :param distance_matrix: The distance matrix is an array whose i, j entry is the distance from location i to location j in miles.
+    :return: Optimal routes
     """
 
     # Instantiate the data problem.
-    data = create_data_model(distance_matrix)
+    data = create_data_model(distance_matrix, depot, num_vehicles)
 
     # Create the routing index manager.
     manager = pywrapcp.RoutingIndexManager(len(data['distance_matrix']),
@@ -75,7 +97,9 @@ def ortools_tsp_solver(distance_matrix):
     routing = pywrapcp.RoutingModel(manager)
 
     def distance_callback(from_index, to_index):
-        """Returns the distance between the two nodes."""
+        """
+        Returns the distance between the two nodes.
+        """
         # Convert from routing variable Index to distance matrix NodeIndex.
         from_node = manager.IndexToNode(from_index)
         to_node = manager.IndexToNode(to_index)
@@ -86,6 +110,17 @@ def ortools_tsp_solver(distance_matrix):
     # Define cost of each arc.
     routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
 
+    # Define the distance dimension to support VRP cases
+    dimension_name = 'Distance'
+    routing.AddDimension(
+        transit_callback_index,
+        0,      # no slack
+        max_distance,   # vehicle maximum travel distance
+        True,   # start cumul to zero
+        dimension_name)
+    distance_dimension = routing.GetDimensionOrDie(dimension_name)
+    distance_dimension.SetGlobalSpanCostCoefficient(cost_coefficient)
+
     # Setting first solution heuristic.
     search_parameters = pywrapcp.DefaultRoutingSearchParameters()
     search_parameters.first_solution_strategy = (
@@ -95,9 +130,15 @@ def ortools_tsp_solver(distance_matrix):
     solution = routing.SolveWithParameters(search_parameters)
 
     # Print solution on console.
-    routes = get_routes(solution, routing, manager)
+    if solution:
+        print_solution(data, manager, routing, solution)
+    else:
+        print('No solution found!')
 
+    # Get routes from the solution
+    routes = get_routes(solution, routing, manager)
+    print(">>>>> ", routes)
     if solution and len(routes) > 0:
-        return solution.ObjectiveValue(), routes
+        return routes
     else:
         raise Exception("Could not find an optimal route.")
