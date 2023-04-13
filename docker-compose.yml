@@ -20,10 +20,10 @@ services:
       dockerfile: Dockerfile
       context: .
     command: bash -c "python main.py"
-    container_name: tsp_solver
-    hostname: tsp_solver
+    container_name: tsp-solver
+    hostname: tsp-solver
     volumes:
-      - ./:/tsp_solver
+      - ./:/tsp-solver
     stdin_open: true
     tty: true
     networks:

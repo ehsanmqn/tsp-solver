@@ -56,6 +56,7 @@ def process_message(channel, method, properties, body):
     :param channel: Message channel
     :param body: Message body
     """
+
     json_data = json.loads(body.decode('utf-8'))
     request = TspRequest(**json_data)
     distance_matrix = generate_distances(request)
@@ -71,7 +72,16 @@ def process_message(channel, method, properties, body):
         response = TspResponse(request.id, None, 404, str(e))
 
     outbound_message = json.dumps(response.__dict__)
-    channel.basic_publish(exchange='', routing_key='TSP_OUTPUT_QUEUE', body=outbound_message)
+
+    channel.basic_publish(
+        exchange='',
+        routing_key='TSP_OUTPUT_QUEUE',
+        properties=pika.BasicProperties(
+            reply_to=str(json_data.get('id')),
+            correlation_id=str(json_data.get('id')),
+        ),
+        body=outbound_message
+    )
 
     logging.info("Incoming request with id {} processed".format(request.id))
 

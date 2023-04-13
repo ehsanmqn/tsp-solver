@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-setup(name='tsp_solver',
+setup(name='tsp-solver',
       version='1.0',
       description='A TSP, VRP solver service',
       author='Ehsan Maiqani',
