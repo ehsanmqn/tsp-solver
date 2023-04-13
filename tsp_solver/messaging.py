@@ -89,10 +89,9 @@ def process_message(channel, method, properties, body):
 def start_service():
     connection = pika.BlockingConnection(pika.ConnectionParameters(
         host=os.environ.get('MESSAGE_BROKER'),
-        # host='localhost',
         port=5672,
         virtual_host='/',
-        heartbeat=300,
+        heartbeat=30,
         credentials=pika.PlainCredentials('admin', 'admin')))
 
     channel = connection.channel()
