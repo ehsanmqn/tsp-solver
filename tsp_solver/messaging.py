@@ -1,5 +1,7 @@
 import json
+import logging
 import math
+import os
 import pika
 
 from tsp_solver.solver import ortools_vrp_solver
@@ -70,13 +72,14 @@ def process_message(channel, method, properties, body):
 
     outbound_message = json.dumps(response.__dict__)
     channel.basic_publish(exchange='', routing_key='TSP_OUTPUT_QUEUE', body=outbound_message)
-    print("Incoming request with id {} processed".format(request.id))
+
+    logging.info("Incoming request with id {} processed".format(request.id))
 
 
 def start_service():
     connection = pika.BlockingConnection(pika.ConnectionParameters(
-        # host=os.environ.get('MESSAGE_BROKER'),
-        host='localhost',
+        host=os.environ.get('MESSAGE_BROKER'),
+        # host='localhost',
         port=5672,
         virtual_host='/',
         credentials=pika.PlainCredentials('admin', 'admin')))
@@ -85,5 +88,7 @@ def start_service():
     channel.queue_declare(queue='TSP_INPUT_QUEUE')
     channel.queue_declare(queue='TSP_OUTPUT_QUEUE')
     channel.basic_consume(queue='TSP_INPUT_QUEUE', on_message_callback=process_message, auto_ack=True)
-    print('Waiting for inbound messages...')
+
+    logging.info("Waiting for inbound messages...")
+
     channel.start_consuming()

@@ -15,23 +15,23 @@ services:
     networks:
       - shared_network
 
-#  tsp-solver:
-#    build:
-#      dockerfile: Dockerfile
-#      context: .
-#    command: bash -c "python main.py"
-#    container_name: tsp-solver
-#    hostname: tsp-solver
-#    volumes:
-#      - ./:/tsp-solver
-#    stdin_open: true
-#    tty: true
-#    networks:
-#      - shared_network
-#    environment:
-#      - MESSAGE_BROKER=rabbitmq
-#    depends_on:
-#      - rabbitmq
+  tsp-solver:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    command: bash -c "python main.py"
+    container_name: tsp-solver
+    hostname: tsp-solver
+    volumes:
+      - ./:/tsp-solver
+    stdin_open: true
+    tty: true
+    networks:
+      - shared_network
+    environment:
+      - MESSAGE_BROKER=rabbitmq
+    depends_on:
+      - rabbitmq
 
 networks:
   shared_network:
