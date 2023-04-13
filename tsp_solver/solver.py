@@ -73,7 +73,7 @@ def get_routes(solution, routing, manager):
     return routes
 
 
-def ortools_vrp_solver(distance_matrix, depot: int, num_vehicles: int, max_distance: int, cost_coefficient: int):
+def ortools_vrp_solver(distance_matrix: list[list[int]], depot: int, num_vehicles: int, max_distance: int, cost_coefficient: int):
     """
     Entry point for finding the optimal path between points using the ortools library
     :param cost_coefficient: Cost proportional to the *global* dimension span, that is the
