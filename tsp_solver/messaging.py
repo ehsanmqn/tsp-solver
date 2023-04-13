@@ -92,6 +92,7 @@ def start_service():
         # host='localhost',
         port=5672,
         virtual_host='/',
+        heartbeat=300,
         credentials=pika.PlainCredentials('admin', 'admin')))
 
     channel = connection.channel()
