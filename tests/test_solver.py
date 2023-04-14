@@ -15,9 +15,10 @@ class TestOrtoolsVRPSolver(unittest.TestCase):
         max_distance = 100
         cost_coefficient = 1
 
-        expected_output = [
-            {'route': [0, 1, 3, 2, 0], 'vehicle': 0, 'distance': 80}
-        ]
+        expected_output = {
+            'routes': [{'route': [0, 1, 3, 2, 0], 'vehicle': 0, 'distance': 80}],
+            'max_route_distance': 80
+        }
 
         result = ortools_vrp_solver(distance_matrix, depot, num_vehicles, max_distance, cost_coefficient)
 
@@ -33,9 +34,10 @@ class TestOrtoolsVRPSolver(unittest.TestCase):
         max_distance = 100
         cost_coefficient = 1
 
-        expected_output = [
-            {'route': [0, 1, 3, 2, 0], 'vehicle': 0, 'distance': 80}
-        ]
+        expected_output = {
+            'routes': [{'route': [0, 1, 3, 2, 0], 'vehicle': 0, 'distance': 80}],
+            'max_route_distance': 80
+        }
 
         result = ortools_vrp_solver(distance_matrix, depot, num_vehicles, max_distance, cost_coefficient)
 
@@ -53,10 +55,10 @@ class TestOrtoolsVRPSolver(unittest.TestCase):
         max_distance = 100
         cost_coefficient = 1
 
-        expected_output = [
-            {'route': [0, 5, 3, 2, 4, 0], 'vehicle': 0, 'distance': 95},
-            {'route': [0, 1, 0], 'vehicle': 1, 'distance': 40}
-        ]
+        expected_output = {
+            'routes': [{'route': [0, 5, 3, 2, 4, 0], 'vehicle': 0, 'distance': 95}, {'route': [0, 1, 0], 'vehicle': 1, 'distance': 40}],
+            'max_route_distance': 95
+        }
 
         result = ortools_vrp_solver(distance_matrix, depot, num_vehicles, max_distance, cost_coefficient)
 
@@ -76,11 +78,14 @@ class TestOrtoolsVRPSolver(unittest.TestCase):
         max_distance = 150
         cost_coefficient = 1
 
-        expected_output = [
-            {'route': [0, 7, 0], 'vehicle': 0, 'distance': 140},
-            {'route': [0, 5, 6, 0], 'vehicle': 1, 'distance': 145},
-            {'route': [0, 2, 3, 4, 1, 0], 'vehicle': 2, 'distance': 110}
-        ]
+        expected_output = {
+            'routes': [
+                {'route': [0, 7, 0], 'vehicle': 0, 'distance': 140},
+                {'route': [0, 5, 6, 0], 'vehicle': 1, 'distance': 145},
+                {'route': [0, 2, 3, 4, 1, 0], 'vehicle': 2, 'distance': 110}
+            ],
+            'max_route_distance': 145
+        }
 
         result = ortools_vrp_solver(distance_matrix, depot, num_vehicles, max_distance, cost_coefficient)
 
