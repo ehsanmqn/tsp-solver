@@ -19,8 +19,8 @@ services:
     build:
       dockerfile: Dockerfile
       context: .
-    command: bash -c "python main.py"
-    container_name: tsp-solver
+    command: bash -c "python service.py"
+    container_name: tsp-solver-base
     hostname: tsp-solver
     volumes:
       - ./:/tsp-solver
