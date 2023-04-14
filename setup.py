@@ -12,7 +12,9 @@ setup(name='tsp-solver',
           'ortools==9.6.2534',
           'pika==1.3.1',
           'protobuf==4.22.1',
-          'scipy==1.10.1'
+          'pydantic==1.10.7',
+          'scipy==1.10.1',
+          'typing_extensions==4.5.0'
       ],
       classifiers=[
           "Programming Language :: Python :: 3",
