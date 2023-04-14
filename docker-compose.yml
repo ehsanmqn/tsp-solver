@@ -3,7 +3,7 @@ version: '3'
 services:
   rabbitmq:
     image: rabbitmq:3-management
-    container_name: rabbitmq
+    container_name: rabbitmq-vrp
     hostname: rabbitmq
     environment:
       - RABBITMQ_DEFAULT_USER=admin
