@@ -4,7 +4,7 @@ import logging
 from tsp_solver import messaging
 
 # Configure logging settings
-logging.basicConfig(filename='tsp_solver.log', level=logging.DEBUG,
+logging.basicConfig(filename='../tsp_solver.log', level=logging.DEBUG,
                     format='%(asctime)s %(levelname)s %(message)s')
 
 
