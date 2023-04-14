@@ -1,5 +1,4 @@
 import sys
-import time
 import logging
 
 from tsp_solver import messaging
@@ -15,7 +14,6 @@ def main():
 
 
 if __name__ == '__main__':
-    time.sleep(5)
     sys.exit(main())
 
 # Shutdown the logger when done

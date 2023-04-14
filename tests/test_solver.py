@@ -1,6 +1,6 @@
 import unittest
 
-from tsp_solver.solver import ortools_vrp_solver
+from tsp_solver.vrp_solver import ortools_vrp_solver
 
 
 class TestOrtoolsVRPSolver(unittest.TestCase):

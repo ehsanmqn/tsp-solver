@@ -4,7 +4,7 @@ import math
 import os
 import pika
 
-from tsp_solver.solver import ortools_vrp_solver
+from tsp_solver.vrp_solver import ortools_vrp_solver
 
 scale_factor = 100
 
