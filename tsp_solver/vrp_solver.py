@@ -1,3 +1,4 @@
+import numpy as np
 from ortools.constraint_solver import routing_enums_pb2
 from ortools.constraint_solver import pywrapcp
 
@@ -26,6 +27,7 @@ def print_solution(data, manager, routing, solution):
     :param routing: Routing model
     :param solution: The solution calculated by the ortools optimizer
     """
+
     print(f'Objective: {solution.ObjectiveValue()}')
     max_route_distance = 0
     for vehicle_id in range(data['num_vehicles']):
@@ -55,35 +57,46 @@ def get_routes(solution, routing, manager):
     """
 
     routes = []
+    max_route_distance = 0
+
+    # Iterate over routes
     for route_nbr in range(routing.vehicles()):
         index = routing.Start(route_nbr)
         route = [manager.IndexToNode(index)]
         route_distance = 0
+
+        # Obtain route locations and distance
         while not routing.IsEnd(index):
             previous_index = index
             index = solution.Value(routing.NextVar(index))
             route.append(manager.IndexToNode(index))
             route_distance += routing.GetArcCostForVehicle(
                 previous_index, index, route_nbr)
+
+        # Compute the max distance
+        max_route_distance = max(route_distance, max_route_distance)
+
         routes.append({
             "route": route,
             "vehicle": route_nbr,
             "distance": route_distance
         })
-    return routes
+
+    return {
+        "routes": routes,
+        "max_route_distance": max_route_distance
+    }
 
 
 def ortools_vrp_solver(distance_matrix: list[list[int]], depot: int, num_vehicles: int, max_distance: int, cost_coefficient: int):
     """
     Entry point for finding the optimal path between points using the ortools library
-    :param cost_coefficient: Cost proportional to the *global* dimension span, that is the
-        difference between the largest value of route end cumul variables and
-        the smallest value of route start cumul variables.
+    :param cost_coefficient: Difference between the largest value of route end cumul variables and the smallest value of route start cumul variables.
     :param max_distance: Vehicle maximum travel distance
-    :param num_vehicles: The number of vehicles in the fleet. If set 1, it would be TSP. (For a vehicle routing problem (VRP), the number of vehicles can be greater than 1.)
+    :param num_vehicles: The number of vehicles in the fleet. If set 1, it would be TSP.
     :param depot: The start and end location for the route.
-    :param distance_matrix: The distance matrix is an array whose i, j entry is the distance from location i to location j in miles.
-    :return: Optimal routes
+    :param distance_matrix: The distance matrix is an array whose i, j entry is the distance from location i to location j.
+    :return: Json object containing optimal routes
     """
 
     # Validate inputs
@@ -97,8 +110,7 @@ def ortools_vrp_solver(distance_matrix: list[list[int]], depot: int, num_vehicle
     data = create_data_model(distance_matrix, depot, num_vehicles)
 
     # Create the routing index manager.
-    manager = pywrapcp.RoutingIndexManager(len(data['distance_matrix']),
-                                           data['num_vehicles'], data['depot'])
+    manager = pywrapcp.RoutingIndexManager(len(distance_matrix), num_vehicles, depot)
 
     # Create Routing Model.
     routing = pywrapcp.RoutingModel(manager)
@@ -107,6 +119,7 @@ def ortools_vrp_solver(distance_matrix: list[list[int]], depot: int, num_vehicle
         """
         Returns the distance between the two nodes.
         """
+
         # Convert from routing variable Index to distance matrix NodeIndex.
         from_node = manager.IndexToNode(from_index)
         to_node = manager.IndexToNode(to_index)
