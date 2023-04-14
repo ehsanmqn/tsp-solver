@@ -33,7 +33,109 @@ chamod +x install.sh
 ./install.sh
 ```
 
-## About the project
+## Message structure
+To effectively leverage the tsp-solver service for solving TVP, TSP, or TVPTW problems, it is necessary to adhere to a specific message structure. This involves sending the message to the RabbitMQ on the designated topic, namely TSP_INPUT_QUEUE. Following the problem's processing, the optimized result will be published on the TSP_OUTPUT_QUEUE.
+
+**NOTE:** In this project (due to it is a test), the distance matrix, and the time matrix calculate everytime a new message recieved. However, it's still more efficient to pre-compute all the distances between locations and store them in a matrix, rather than compute them at run time. 
+Another alternative is to use the Google Maps Distance Matrix API to dynamically create a distance (or travel time) matrix for a routing problem.
+
+### TSP message
+The following code snippet represents a JSON object that contains information about a TSP task. It includes an identifier ('id') for the specific task, the type of problem ('message_type'), the depot location ('depot'), the number of vehicles required for the task ('num_vehicles'). For the TSP problem num_vehicles must be 1. And a list of locations to be visited by the vehicle ('locations').
+
+```json
+{
+    "id": 1,
+    "message_type": "TSP",
+    "depot": 0,
+    "num_vehicles": 1,
+    "locations": [
+      {"latitude": 40.7128, "longitude": -74.0060},
+      {"latitude": 34.0522, "longitude": -118.2437},
+      {"latitude": 41.8781, "longitude": -87.6298},
+      {"latitude": 29.7604, "longitude": -95.3698},
+      {"latitude": 39.9526, "longitude": -75.1652},
+      {"latitude": 33.4484, "longitude": -112.0740},
+      {"latitude": 29.4241, "longitude": -98.4936},
+      {"latitude": 32.7157, "longitude": -117.1611},
+      {"latitude": 32.7767, "longitude": -96.7970},
+      {"latitude": 37.3382, "longitude": -121.8863}
+    ]
+}
+```
+
+### VRP message
+The following code snippet represents a JSON object that contains information about a VRP (Vehicle Routing Problem) task. It includes an identifier ('id') for the specific task, the type of problem ('message_type'), the depot location ('depot'), the number of vehicles required for the task ('num_vehicles'), and a list of locations to be visited by the vehicles ('locations').
+
+Each location is specified using its latitude and longitude coordinates, with ten locations listed in total. This information can be leveraged as input data for a routing optimization algorithm to determine the most efficient routes for vehicles to visit all the specified locations.
+
+```json
+{
+    "id": 1,
+    "message_type": "VRP",
+    "depot": 0,
+    "num_vehicles": 2,
+    "locations": [
+      {"latitude": 40.7128, "longitude": -74.0060},
+      {"latitude": 34.0522, "longitude": -118.2437},
+      {"latitude": 41.8781, "longitude": -87.6298},
+      {"latitude": 29.7604, "longitude": -95.3698},
+      {"latitude": 39.9526, "longitude": -75.1652},
+      {"latitude": 33.4484, "longitude": -112.0740},
+      {"latitude": 29.4241, "longitude": -98.4936},
+      {"latitude": 32.7157, "longitude": -117.1611},
+      {"latitude": 32.7767, "longitude": -96.7970},
+      {"latitude": 37.3382, "longitude": -121.8863}
+    ]
+}
+```
+
+### VRPTW message
+This is a JSON object representing a vehicle routing problem with time windows (VRPTW). It specifies the details of the problem, including:
+
+* message_type: The type of message, which is VRPTW.
+* id: The ID of the request.
+* depot: The index of the depot location.
+* num_vehicles: The number of vehicles available for the problem.
+* locations: A list of dictionary objects containing the latitude and longitude coordinates of each location to be visited by the vehicles.
+* time_windows: A list of tuples specifying the time window for each location.
+* wait_time: An upper bound for slack (the wait times at the locations).
+* max_time_vehicle: An upper bound for the total time over each vehicle's route.
+
+```json
+{
+    "message_type": "VRPTW",
+    "id": 1,
+    "depot": 0,
+    "num_vehicles": 2,
+    "locations": [
+        {"latitude": 40.7128, "longitude": -74.0060},
+            {"latitude": 34.0522, "longitude": -118.2437},
+            {"latitude": 41.8781, "longitude": -87.6298},
+            {"latitude": 29.7604, "longitude": -95.3698},
+            {"latitude": 39.9526, "longitude": -75.1652},
+            {"latitude": 33.4484, "longitude": -112.0740},
+            {"latitude": 29.4241, "longitude": -98.4936},
+            {"latitude": 32.7157, "longitude": -117.1611},
+            {"latitude": 32.7767, "longitude": -96.7970},
+            {"latitude": 37.3382, "longitude": -121.8863}
+    ],
+    "time_windows": [
+        (0, 5),  # depot
+        (7, 12),  # 1
+        (10, 15),  # 2
+        (16, 18),  # 3
+        (10, 13),  # 4
+        (0, 5),  # 5
+        (5, 10),  # 6
+        (0, 4),  # 7
+        (5, 10),  # 8
+        (0, 3)  # 9
+    ],
+    "wait_time": 30,
+    "max_time_vehicle": 30
+}
+```
+## Project structure
 This is a Python script that defines a service for solving the TSP (Traveling Salesman Problem), VRP (Vehicle Routing Problem), and  VRPTW (Vehicle Routing Problem with Time Windows) optimization problems using OR-Tools, a library for optimization problems developed by Google.
 
 The project contains following modules:
