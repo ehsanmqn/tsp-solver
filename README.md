@@ -120,16 +120,16 @@ This is a JSON object representing a vehicle routing problem with time windows (
             {"latitude": 37.3382, "longitude": -121.8863}
     ],
     "time_windows": [
-        (0, 5),  # depot
-        (7, 12),  # 1
-        (10, 15),  # 2
-        (16, 18),  # 3
-        (10, 13),  # 4
-        (0, 5),  # 5
-        (5, 10),  # 6
-        (0, 4),  # 7
-        (5, 10),  # 8
-        (0, 3)  # 9
+        [0, 5],  
+        [7, 12],
+        [10, 15],
+        [16, 18],  
+        [10, 13],  
+        [0, 5],  
+        [5, 10],  
+        [0, 4],  
+        [5, 10],  
+        [0, 3]  
     ],
     "wait_time": 30,
     "max_time_vehicle": 30

@@ -14,7 +14,7 @@ class VrpRequest(BaseModel):
     """
     The VRP/TSP request message format
     """
-    id: int
+    id: str
     locations: List
     depot: int
     num_vehicles: int
@@ -25,7 +25,7 @@ class VrptwRequest(BaseModel):
     """
     The VRPTW request message format
     """
-    id: int
+    id: str
     locations: List
     depot: int
     num_vehicles: int
