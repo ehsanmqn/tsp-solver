@@ -1,10 +1,10 @@
 version: '3'
 
 services:
-  rabbitmq:
+  rabbitmq-vrp:
     image: rabbitmq:3-management
     container_name: rabbitmq-vrp
-    hostname: rabbitmq
+    hostname: rabbitmq-vrp
     environment:
       - RABBITMQ_DEFAULT_USER=admin
       - RABBITMQ_DEFAULT_PASS=admin
@@ -15,13 +15,13 @@ services:
     networks:
       - shared_network
 
-  tsp-solver:
+  tsp-solver-base:
     build:
       dockerfile: Dockerfile
       context: .
-    command: bash -c "python service.py"
+    command: bash -c "chmod +x wait-for-it.sh && ./wait-for-it.sh rabbitmq:5672 -- python main.py"
     container_name: tsp-solver-base
-    hostname: tsp-solver
+    hostname: tsp-solver-base
     volumes:
       - ./:/tsp-solver
     stdin_open: true
@@ -29,9 +29,9 @@ services:
     networks:
       - shared_network
     environment:
-      - MESSAGE_BROKER=rabbitmq
+      - MESSAGE_BROKER=rabbitmq-vrp
     depends_on:
-      - rabbitmq
+      - rabbitmq-vrp
 
 networks:
   shared_network:
