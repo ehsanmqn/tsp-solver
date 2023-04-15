@@ -92,7 +92,7 @@ def dispatch_message(channel, method, properties, body):
 
 def process_vrp_message(request, channel):
     """
-    Process incoming message regarding the VRP/TSP optimization engine, then publish result on output queue
+    Process incoming message against the VRP/TSP optimization engine
     :param request: Request message
     :param channel: Messaging channel object
     """
@@ -121,7 +121,7 @@ def process_vrp_message(request, channel):
 
 def process_vrptw_message(request, channel):
     """
-    Process incoming message regarding the TSP optimization engine, then publish result on output queue
+    Process incoming message against the TSP optimization engine
     :param channel: Message channel
     :param request: Request data
     """

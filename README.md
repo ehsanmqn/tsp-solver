@@ -179,6 +179,8 @@ class VrpRequest(BaseModel):
     depot: int
     num_vehicles: int
     message_type: str
+    max_distance: int
+    cost_coefficient: int
 
 class VrptwRequest(BaseModel):
     id: str
