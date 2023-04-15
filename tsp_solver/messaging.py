@@ -3,10 +3,10 @@ import logging
 import os
 import pika
 
-from tsp_solver.models import VrpRequest, VrptwRequest, VrpResponse
 from tsp_solver.vrp_solver import ortools_vrp_solver
 from tsp_solver.vrptw_solver import ortools_vrptw_solver
 from tsp_solver.utils import generate_distance_matrix, generate_time_matrix
+from tsp_solver.models import VrpRequest, VrptwRequest, VrpResponse
 
 
 def dispatch_message(channel, method, properties, body):
