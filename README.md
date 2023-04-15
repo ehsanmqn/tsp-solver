@@ -11,7 +11,7 @@ The aim of this project is to provide a solution for the TSP, VRP, and VRPTW pro
 ### Docker container
 The project includes a docker-compose file that specifies the necessary requirements for deploying the project using docker containers. To run the project with docker, navigate to the project directory and execute the following command:
 ```bash
-docker-compose up --build
+docker-compose up
 ```
 
 ### Manual
@@ -27,7 +27,7 @@ python tsp_solver/service.py
 ## Packaging and Running
 The **setup.py** file defined the necessary metadata such as the package name, version, description, author information, and required packages for packaging the project.
 
-A bash file named **install.sh** provided in the project. This script is used to build, install, and run the TSP solver service. In order to use it, first change the MESSAGE_BROKER variable based on the RabbitMQ address. Then run it according to follow:
+A bash file named **install.sh** provided in the project. This script is used to build, install, and run the TSP solver service. In order to use it, first change the MESSAGE_BROKER variable inside the install.sh based on the RabbitMQ address. Then run it according to follow:
 ```bash
 chamod +x install.sh
 ./install.sh

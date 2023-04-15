@@ -52,11 +52,15 @@ def dispatch_message(channel, method, properties, body):
     :param channel: Message channel
     :param body: Message body
     """
+
+    # Load message data as json
     json_data = json.loads(body.decode('utf-8'))
 
+    # Get required variables
     message_type = json_data.get('message_type')
     message_id = json_data.get('id')
 
+    # Dispatch request based on message type
     try:
         if message_type in ['VRP', 'TSP']:
             request = VrpRequest(**json_data)
@@ -69,7 +73,10 @@ def dispatch_message(channel, method, properties, body):
     except ValueError as e:
         response = VrpResponse(message_id, None, 400, str(e))
 
+    # Construct response message
     outbound_message = json.dumps(response.__dict__)
+
+    # Publish response message
     channel.basic_publish(
         exchange='',
         routing_key='TSP_OUTPUT_QUEUE',
@@ -88,19 +95,25 @@ def process_vrp_message(request, channel):
     :param channel: Messaging channel object
     """
 
+    # Generate distance matrix
     distance_matrix = generate_distance_matrix(request)
 
     try:
+        # Solve the problem using generated distance matrix
         routes = ortools_vrp_solver(distance_matrix=distance_matrix,
                                     depot=request.depot,
                                     num_vehicles=request.num_vehicles,
                                     max_distance=100000,
                                     cost_coefficient=100)
+
+        # Construct response
         response = VrpResponse(request.id, routes, 200, "Operation successful.")
     except Exception as e:
+        # Create appropriate response in error cases
         response = VrpResponse(request.id, None, 404, str(e))
 
     logging.info("Incoming {} request with id {} processed".format(request.message_type, request.id))
+
     return response
 
 
@@ -111,9 +124,11 @@ def process_vrptw_message(request, channel):
     :param request: Request data
     """
 
+    # Generate the time matrix
     time_matrix = generate_time_matrix(request)
 
     try:
+        # Solve the problem using time matrix
         routes = ortools_vrptw_solver(time_matrix=time_matrix,
                                       time_windows=request.time_windows,
                                       depot=request.depot,
@@ -121,15 +136,19 @@ def process_vrptw_message(request, channel):
                                       wait_time=request.wait_time,
                                       max_time_vehicle=request.max_time_vehicle)
 
+        # Construct response
         response = VrpResponse(request.id, routes, 200, "Operation successful.")
     except Exception as e:
+        # Create appropriate response in error cases
         response = VrpResponse(request.id, None, 404, str(e))
 
     logging.info("Incoming {} request with id {} processed".format(request.message_type, request.id))
+
     return response
 
 
 def start_service():
+    # Create connection to the RabbitMQ
     connection = pika.BlockingConnection(pika.ConnectionParameters(
         host=os.environ.get('MESSAGE_BROKER'),
         port=5672,
@@ -137,12 +156,15 @@ def start_service():
         heartbeat=30,
         credentials=pika.PlainCredentials('admin', 'admin')))
 
+    # Declare queues
     channel = connection.channel()
     channel.queue_declare(queue='TSP_INPUT_QUEUE')
     channel.queue_declare(queue='TSP_OUTPUT_QUEUE')
 
+    # Declare consuming queue
     channel.basic_consume(queue='TSP_INPUT_QUEUE', on_message_callback=dispatch_message, auto_ack=True)
 
     logging.info("Waiting for inbound messages...")
 
+    # Start consuming
     channel.start_consuming()
