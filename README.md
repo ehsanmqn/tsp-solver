@@ -145,16 +145,76 @@ The project contains following modules:
 4. **vrp_solver.py**: The TSP/VRP solver module.
 5. **vrptw_solver.py**: The VRPTW solver module.
 
+```
+tsp-solver\
+    tests\
+        __init__.py
+        test_solver.py
+    tsp_solver\
+        __init__.py
+        messaging.py
+        service.py
+        utils.py
+        vrp_solver.py
+        vrptw_solver.py
+    setup.py
+    main.py
+```
 The script starts by importing necessary libraries like _json_, _logging_, _os_, _pika_, and _BaseModel_ from the _pydantic_ module. It also imports functions and classes from other modules of the **tsp_solver** package such as **_ortools_vrp_solver_**, **_ortools_vrptw_solver_**, **_generate_distance_matrix_**, and **_generate_time_matrix_**.
 
 The **_VrpRequest_** and **_VrptwRequest_** classes represent the format of incoming messages containing a request to solve the VRP or VRPTW optimization problem respectively, while the _**VrpResponse**_ class represents the format of outgoing messages containing the solution to the optimization problem.
+```python
+class VrpRequest(BaseModel):
+    id: str
+    locations: List
+    depot: int
+    num_vehicles: int
+    message_type: str
 
+class VrptwRequest(BaseModel):
+    id: str
+    locations: List
+    depot: int
+    num_vehicles: int
+    message_type: str
+    time_windows: List
+    wait_time: int
+    max_time_vehicle: int
+
+class VrpResponse:
+    def __init__(self, id, solution, code, message):
+        self.id = id
+        self.solution = solution
+        self.code = code
+        self.message = message
+```
 The _**dispatch_message**_ function processes incoming messages based on their _**message_type**_ attribute, which can be either 'VRP', 'TSP' or 'VRPTW'. The function creates an instance of the appropriate request class based on the message type, then passes it to the appropriate processing function (_**process_vrp_message**_ or _**process_vrptw_message**_). If the message type is not supported, the function returns a response with error code 400 and message "Not supported message type." If there is a problem with the request data, the function returns a response with error code 400 and an error message.
-
+```python
+def dispatch_message(channel, method, properties, body):
+    """
+    Process incoming message regarding the message type
+    """
+    ...
+```
 The _**process_vrp_message**_ and _**process_vrptw_message**_ functions both take a request object and a channel object as arguments, and use the OR-Tools library to solve the corresponding optimization problem. They then create a _**VrpResponse**_ object with the solution and a success message if the optimization was successful, or an error message if there was a problem with the request or the optimization. The functions return the _**VrpResponse**_ object.
+```python
+def process_vrp_message(request, channel):
+    """
+    Process incoming message regarding the VRP/TSP optimization engine, then publish result on output queue
+    """
+    ...
 
+def process_vrptw_message(request, channel):
+    """
+    Process incoming message regarding the TSP optimization engine, then publish result on output queue
+    """
+    ...
+```
 The _**start_service**_ function sets up a connection to a message broker specified by the **MESSAGE_BROKER** environment variable, creates input and output queues for TSP messages, and starts consuming messages from the input queue. When a message is received, the _**dispatch_message**_ function is called to handle it, and the resulting response is sent to the output queue with the same message ID as the incoming message.
-
+```python
+def start_service():
+    ...
+```
 
 ## Tests
 To conduct tests against the VRP solver (_ortools_vrp_solver_), there are 9 tests that have been implemented. Please run the following command to execute these tests:
