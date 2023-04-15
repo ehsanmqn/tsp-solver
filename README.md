@@ -146,11 +146,11 @@ The project contains following modules:
 5. **vrptw_solver.py**: The VRPTW solver module.
 
 ```
-tsp-solver\
-    tests\
+tsp-solver/
+    tests/
         __init__.py
         test_solver.py
-    tsp_solver\
+    tsp_solver/
         __init__.py
         messaging.py
         service.py
@@ -159,6 +159,7 @@ tsp-solver\
         vrptw_solver.py
     setup.py
     main.py
+    README.md
 ```
 The script starts by importing necessary libraries like _json_, _logging_, _os_, _pika_, and _BaseModel_ from the _pydantic_ module. It also imports functions and classes from other modules of the **tsp_solver** package such as **_ortools_vrp_solver_**, **_ortools_vrptw_solver_**, **_generate_distance_matrix_**, and **_generate_time_matrix_**.
 
