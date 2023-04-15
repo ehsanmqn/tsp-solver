@@ -19,6 +19,8 @@ class VrpRequest(BaseModel):
     depot: int
     num_vehicles: int
     message_type: str
+    max_distance: int
+    cost_coefficient: int
 
 
 class VrptwRequest(BaseModel):
@@ -103,8 +105,8 @@ def process_vrp_message(request, channel):
         routes = ortools_vrp_solver(distance_matrix=distance_matrix,
                                     depot=request.depot,
                                     num_vehicles=request.num_vehicles,
-                                    max_distance=100000,
-                                    cost_coefficient=100)
+                                    max_distance=request.max_distance,
+                                    cost_coefficient=request.cost_coefficient)
 
         # Construct response
         response = VrpResponse(request.id, routes, 200, "Operation successful.")

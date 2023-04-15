@@ -42,6 +42,8 @@ Another alternative is to use the Google Maps Distance Matrix API to dynamically
 ### TSP message
 The following code snippet represents a JSON object that contains information about a TSP task. It includes an identifier ('id') for the specific task, the type of problem ('message_type'), the depot location ('depot'), the number of vehicles required for the task ('num_vehicles'). For the TSP problem num_vehicles must be 1. And a list of locations to be visited by the vehicle ('locations').
 
+To facilitate the task, the user is required to provide two additional parameters, namely the maximum distance and cost coefficient, to the VRP optimizer while solving a problem.
+
 ```json
 {
     "id": 1,
@@ -59,14 +61,18 @@ The following code snippet represents a JSON object that contains information ab
       {"latitude": 32.7157, "longitude": -117.1611},
       {"latitude": 32.7767, "longitude": -96.7970},
       {"latitude": 37.3382, "longitude": -121.8863}
-    ]
+    ],
+    "max_distance": 100000,
+    "cost_coefficient": 100
 }
 ```
 
 ### VRP message
 The following code snippet represents a JSON object that contains information about a VRP (Vehicle Routing Problem) task. It includes an identifier ('id') for the specific task, the type of problem ('message_type'), the depot location ('depot'), the number of vehicles required for the task ('num_vehicles'), and a list of locations to be visited by the vehicles ('locations').
 
-Each location is specified using its latitude and longitude coordinates, with ten locations listed in total. This information can be leveraged as input data for a routing optimization algorithm to determine the most efficient routes for vehicles to visit all the specified locations.
+Each location is specified using its latitude and longitude coordinates. This information can be leveraged as input data for a routing optimization algorithm to determine the most efficient routes for vehicles to visit all the specified locations.
+
+To facilitate the task, the user is required to provide two additional parameters, namely the maximum distance and cost coefficient, to the VRP optimizer while solving a problem.
 
 ```json
 {
@@ -85,7 +91,9 @@ Each location is specified using its latitude and longitude coordinates, with te
       {"latitude": 32.7157, "longitude": -117.1611},
       {"latitude": 32.7767, "longitude": -96.7970},
       {"latitude": 37.3382, "longitude": -121.8863}
-    ]
+    ],
+    "max_distance": 100000,
+    "cost_coefficient": 100
 }
 ```
 
