@@ -120,9 +120,6 @@ def ortools_vrptw_solver(time_matrix, time_windows, depot, num_vehicles, wait_ti
     assert wait_time >= 0, "Wait time should be greater than or equal to zero."
     assert max_time_vehicle >= 0, "Maximum time per vehicle should be greater than or equal to zero."
 
-    # Instantiate the data problem.
-    data = create_data_model(time_matrix, time_windows, depot, num_vehicles)
-
     # Create the routing index manager.
     manager = pywrapcp.RoutingIndexManager(len(time_matrix), num_vehicles, depot)
 
@@ -134,11 +131,10 @@ def ortools_vrptw_solver(time_matrix, time_windows, depot, num_vehicles, wait_ti
         """
         Returns the travel time between the two nodes.
         """
-
         # Convert from routing variable Index to time matrix NodeIndex.
         from_node = manager.IndexToNode(from_index)
         to_node = manager.IndexToNode(to_index)
-        return data['time_matrix'][from_node][to_node]
+        return time_matrix[from_node][to_node]
 
     transit_callback_index = routing.RegisterTransitCallback(time_callback)
 
@@ -156,22 +152,20 @@ def ortools_vrptw_solver(time_matrix, time_windows, depot, num_vehicles, wait_ti
     time_dimension = routing.GetDimensionOrDie(dimension_name)
 
     # Add time window constraints for each location except depot.
-    for location_idx, time_window in enumerate(data['time_windows']):
-        if location_idx == data['depot']:
+    for location_idx, time_window in enumerate(time_windows):
+        if location_idx == depot:
             continue
         index = manager.NodeToIndex(location_idx)
         time_dimension.CumulVar(index).SetRange(time_window[0], time_window[1])
 
     # Add time window constraints for each vehicle start node.
-    depot_idx = data['depot']
-    for vehicle_id in range(data['num_vehicles']):
+    depot_idx = depot
+    for vehicle_id in range(num_vehicles):
         index = routing.Start(vehicle_id)
-        time_dimension.CumulVar(index).SetRange(
-            data['time_windows'][depot_idx][0],
-            data['time_windows'][depot_idx][1])
+        time_dimension.CumulVar(index).SetRange(time_window[depot_idx][0], time_window[depot_idx][1])
 
     # Instantiate route start and end times to produce feasible times.
-    for i in range(data['num_vehicles']):
+    for i in range(num_vehicles):
         routing.AddVariableMinimizedByFinalizer(
             time_dimension.CumulVar(routing.Start(i)))
         routing.AddVariableMinimizedByFinalizer(

@@ -88,7 +88,11 @@ def get_routes(solution, routing, manager):
     }
 
 
-def ortools_vrp_solver(distance_matrix: list[list[int]], depot: int, num_vehicles: int, max_distance: int, cost_coefficient: int):
+def ortools_vrp_solver(distance_matrix: list[list[int]],
+                       depot: int,
+                       num_vehicles: int,
+                       max_distance: int,
+                       cost_coefficient: int):
     """
     Entry point for finding the optimal path between points using the ortools library
     :param cost_coefficient: Difference between the largest value of route end cumul variables and the smallest value of route start cumul variables.
@@ -106,24 +110,21 @@ def ortools_vrp_solver(distance_matrix: list[list[int]], depot: int, num_vehicle
     assert max_distance >= 0, "Max distance should be greater than or equal to zero."
     assert cost_coefficient >= 0, "Cost coefficient should be greater than or equal to zero."
 
-    # Instantiate the data problem.
-    data = create_data_model(distance_matrix, depot, num_vehicles)
-
     # Create the routing index manager.
     manager = pywrapcp.RoutingIndexManager(len(distance_matrix), num_vehicles, depot)
 
     # Create Routing Model.
     routing = pywrapcp.RoutingModel(manager)
 
+    # Create and assign the transit callback
     def distance_callback(from_index, to_index):
         """
         Returns the distance between the two nodes.
         """
-
         # Convert from routing variable Index to distance matrix NodeIndex.
         from_node = manager.IndexToNode(from_index)
         to_node = manager.IndexToNode(to_index)
-        return data['distance_matrix'][from_node][to_node]
+        return distance_matrix[from_node][to_node]
 
     transit_callback_index = routing.RegisterTransitCallback(distance_callback)
 
@@ -134,17 +135,26 @@ def ortools_vrp_solver(distance_matrix: list[list[int]], depot: int, num_vehicle
     dimension_name = 'Distance'
     routing.AddDimension(
         transit_callback_index,
-        0,  # no slack
-        max_distance,  # vehicle maximum travel distance
-        True,  # start cumul to zero
+        0,              # no slack
+        max_distance,   # vehicle maximum travel distance
+        True,           # start cumul to zero
         dimension_name)
     distance_dimension = routing.GetDimensionOrDie(dimension_name)
     distance_dimension.SetGlobalSpanCostCoefficient(cost_coefficient)
 
     # Setting first solution heuristic.
     search_parameters = pywrapcp.DefaultRoutingSearchParameters()
+
+    # Set first solution strategy as optimizer
     search_parameters.first_solution_strategy = (
-        routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC)
+        routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
+    )
+
+    # Set local search as optimizer (Link: https://developers.google.com/optimization/routing/routing_options#local_search_options)
+    # search_parameters.local_search_metaheuristic = (
+    #     routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH)
+    # search_parameters.time_limit.seconds = 30
+    # search_parameters.log_search = True
 
     # Solve the problem.
     solution = routing.SolveWithParameters(search_parameters)
