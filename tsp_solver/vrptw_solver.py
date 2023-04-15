@@ -101,7 +101,12 @@ def get_routes(solution, manager, routing, dimension):
     }
 
 
-def ortools_vrptw_solver(time_matrix, time_windows, depot, num_vehicles, wait_time, max_time_vehicle):
+def ortools_vrptw_solver(time_matrix: list[list[int]],
+                         time_windows: list[list[int]],
+                         depot: int,
+                         num_vehicles: int,
+                         wait_time: int,
+                         max_time_vehicle: int):
     """
     Solve the VRP with time windows.
     :param time_matrix: An array of travel times between locations.
@@ -131,6 +136,7 @@ def ortools_vrptw_solver(time_matrix, time_windows, depot, num_vehicles, wait_ti
         """
         Returns the travel time between the two nodes.
         """
+
         # Convert from routing variable Index to time matrix NodeIndex.
         from_node = manager.IndexToNode(from_index)
         to_node = manager.IndexToNode(to_index)
@@ -145,9 +151,9 @@ def ortools_vrptw_solver(time_matrix, time_windows, depot, num_vehicles, wait_ti
     dimension_name = 'Time'
     routing.AddDimension(
         transit_callback_index,
-        wait_time,  # allow waiting time
-        max_time_vehicle,  # maximum time per vehicle
-        False,  # Don't force start cumul to zero.
+        wait_time,          # allow waiting time
+        max_time_vehicle,   # maximum time per vehicle
+        False,              # Don't force start cumul to zero.
         dimension_name)
     time_dimension = routing.GetDimensionOrDie(dimension_name)
 
@@ -162,19 +168,16 @@ def ortools_vrptw_solver(time_matrix, time_windows, depot, num_vehicles, wait_ti
     depot_idx = depot
     for vehicle_id in range(num_vehicles):
         index = routing.Start(vehicle_id)
-        time_dimension.CumulVar(index).SetRange(time_window[depot_idx][0], time_window[depot_idx][1])
+        time_dimension.CumulVar(index).SetRange(time_windows[depot_idx][0], time_windows[depot_idx][1])
 
     # Instantiate route start and end times to produce feasible times.
     for i in range(num_vehicles):
-        routing.AddVariableMinimizedByFinalizer(
-            time_dimension.CumulVar(routing.Start(i)))
-        routing.AddVariableMinimizedByFinalizer(
-            time_dimension.CumulVar(routing.End(i)))
+        routing.AddVariableMinimizedByFinalizer(time_dimension.CumulVar(routing.Start(i)))
+        routing.AddVariableMinimizedByFinalizer(time_dimension.CumulVar(routing.End(i)))
 
     # Setting first solution heuristic.
     search_parameters = pywrapcp.DefaultRoutingSearchParameters()
-    search_parameters.first_solution_strategy = (
-        routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC)
+    search_parameters.first_solution_strategy = (routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC)
 
     # Solve the problem.
     solution = routing.SolveWithParameters(search_parameters)
@@ -183,5 +186,5 @@ def ortools_vrptw_solver(time_matrix, time_windows, depot, num_vehicles, wait_ti
         # Get routes from the solution
         routes = get_routes(solution, manager, routing, time_dimension)
         return routes
-    else:
-        raise Exception("Could not find an optimal route.")
+
+    raise Exception("Could not find an optimal route.")

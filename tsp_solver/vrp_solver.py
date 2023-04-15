@@ -146,13 +146,10 @@ def ortools_vrp_solver(distance_matrix: list[list[int]],
     search_parameters = pywrapcp.DefaultRoutingSearchParameters()
 
     # Set first solution strategy as optimizer
-    search_parameters.first_solution_strategy = (
-        routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
-    )
+    search_parameters.first_solution_strategy = (routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC)
 
     # Set local search as optimizer (Link: https://developers.google.com/optimization/routing/routing_options#local_search_options)
-    # search_parameters.local_search_metaheuristic = (
-    #     routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH)
+    # search_parameters.local_search_metaheuristic = routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
     # search_parameters.time_limit.seconds = 30
     # search_parameters.log_search = True
 
@@ -163,5 +160,5 @@ def ortools_vrp_solver(distance_matrix: list[list[int]],
         # Get routes from the solution
         routes = get_routes(solution, routing, manager)
         return routes
-    else:
-        raise Exception("Could not find an optimal route.")
+
+    raise Exception("Could not find an optimal route.")
