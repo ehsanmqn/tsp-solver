@@ -242,15 +242,17 @@ python -m unittest
 ## Improvement
 Here are a few suggestions for improving this code:
 
-1. Add error handling: Although there is some basic error handling in place, it could be improved to handle more edge cases and provide more informative error messages. For example, if the input message is malformed, the service should return an appropriate error response. In addition, errors that occur during processing, such as network errors or solver failures, should be handled more gracefully.
+1. The better approach for handling messages in real projects is asynchronously consume messages using the asyncio and the aio-pika library as AMQP client.
 
-2. Add support for more problem types: Currently, the service only supports three problem types: VRP, TSP, and VRPTW. It would be useful to add support for other types of optimization problems, such as vehicle routing with pickups and deliveries (VRPD), or capacitated vehicle routing problem (CVRP).
+2. Add error handling: Although there is some basic error handling in place, it could be improved to handle more edge cases and provide more informative error messages. For example, if the input message is malformed, the service should return an appropriate error response. In addition, errors that occur during processing, such as network errors or solver failures, should be handled more gracefully.
 
-3. Improve performance: The current implementation uses a simple round-robin approach for message distribution, which may not be optimal for large volumes of traffic. To improve performance, the service could use load balancing techniques, such as using multiple workers or implementing a more sophisticated message distribution algorithm.
+3. Add support for more problem types: Currently, the service only supports three problem types: VRP, TSP, and VRPTW. It would be useful to add support for other types of optimization problems, such as vehicle routing with pickups and deliveries (VRPD), or capacitated vehicle routing problem (CVRP).
 
-4. Add authentication and authorization: Currently, anyone can send messages to the input queue and receive responses from the output queue, which could pose security risks. It would be useful to add authentication and authorization mechanisms to restrict access to authorized users only.
+4. Improve performance: The current implementation uses a simple round-robin approach for message distribution, which may not be optimal for large volumes of traffic. To improve performance, the service could use load balancing techniques, such as using multiple workers or implementing a more sophisticated message distribution algorithm.
 
-5. Use a more robust messaging system: While RabbitMQ is a popular and reliable messaging system, it may not be the best choice for all use cases. Depending on the specific requirements of the service, a different messaging system or architecture, such as Apache Kafka or event-driven microservices, may be more suitable.
+5. Add authentication and authorization: Currently, anyone can send messages to the input queue and receive responses from the output queue, which could pose security risks. It would be useful to add authentication and authorization mechanisms to restrict access to authorized users only.
+
+6. Use a more robust messaging system: While RabbitMQ is a popular and reliable messaging system, it may not be the best choice for all use cases. Depending on the specific requirements of the service, a different messaging system or architecture, such as Apache Kafka or event-driven microservices, may be more suitable.
 
 ## Contributing
 Contributions are welcome! If you want to contribute to this project, please fork the repository and submit a pull request.
