@@ -43,7 +43,8 @@ Another alternative is to use the Google Maps Distance Matrix API to dynamically
 The following code snippet represents a JSON object that contains information about a TSP task. It includes an identifier ('id') for the specific task, the type of problem ('message_type'), the depot location ('depot'), the number of vehicles required for the task ('num_vehicles'). For the TSP problem num_vehicles must be 1. And a list of locations to be visited by the vehicle ('locations').
 
 To facilitate the task, the user is required to provide two additional parameters, namely the maximum distance and cost coefficient, to the VRP optimizer while solving a problem.
-
+According to the [Or-tools documentation](https://developers.google.com/optimization/routing/vrp), _cost_coefficient_ defines the difference between the largest value of route end cumul variables and the smallest value of route start cumul variables.
+Respectively, _max_distance_ defines vehicle maximum travel distance.
 ```json
 {
     "id": 1,
@@ -73,6 +74,8 @@ The following code snippet represents a JSON object that contains information ab
 Each location is specified using its latitude and longitude coordinates. This information can be leveraged as input data for a routing optimization algorithm to determine the most efficient routes for vehicles to visit all the specified locations.
 
 To facilitate the task, the user is required to provide two additional parameters, namely the maximum distance and cost coefficient, to the VRP optimizer while solving a problem.
+According to the [Or-tools documentation](https://developers.google.com/optimization/routing/vrp), _cost_coefficient_ defines the difference between the largest value of route end cumul variables and the smallest value of route start cumul variables.
+Respectively, _max_distance_ defines vehicle maximum travel distance.
 
 ```json
 {
