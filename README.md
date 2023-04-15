@@ -36,7 +36,7 @@ chamod +x install.sh
 ## Message structure
 To effectively leverage the tsp-solver service for solving TVP, TSP, or TVPTW problems, it is necessary to adhere to a specific message structure. This involves sending the message to the RabbitMQ on the designated topic, namely TSP_INPUT_QUEUE. Following the problem's processing, the optimized result will be published on the TSP_OUTPUT_QUEUE.
 
-**NOTE:** In this project (due to it is a test), the distance matrix, and the time matrix calculate everytime a new message recieved. However, it's still more efficient to pre-compute all the distances between locations and store them in a matrix, rather than compute them at run time. 
+**NOTE:** In this project (since it is a test project), the distance matrix, and the time matrix calculate everytime a new message recieved. However, it's still more efficient to pre-compute all the distances between locations and store them in a matrix, rather than compute them at run time. 
 Another alternative is to use the Google Maps Distance Matrix API to dynamically create a distance (or travel time) matrix for a routing problem.
 
 ### TSP message
@@ -102,6 +102,8 @@ Respectively, _max_distance_ defines vehicle maximum travel distance.
 
 ### VRPTW message
 This is a JSON object representing a vehicle routing problem with time windows (VRPTW). It specifies the details of the problem, including:
+
+**NOTE:** To simplify the calculation of the time matrix for the VRPTW problem, I have used the formula `time = Velocity / distance`, where V represents velocity. It's worth noting that although a constant velocity of 80 is considered in this formula, it doesn't affect the final solution. In other words, if all vehicles travel at the same speed, you will get the same solution if you use a distance matrix or a time matrix, since travel distances are a constant multiple of travel times.
 
 * message_type: The type of message, which is VRPTW.
 * id: The ID of the request.
