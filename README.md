@@ -256,6 +256,8 @@ Here are a few suggestions for improving this code:
 
 6. Use a more robust messaging system: While RabbitMQ is a popular and reliable messaging system, it may not be the best choice for all use cases. Depending on the specific requirements of the service, a different messaging system or architecture, such as Apache Kafka or event-driven microservices, may be more suitable.
 
+7. The existing method of using message ID as an identifier for retrieving messages from a queue functions flawlessly when a universally unique identifier (UUID) is employed. However, in practice, if two requests with the same message ID are submitted, the response will be provided to them in a first-in, first-out (FIFO) manner, which may not accurately reflect real-world scenarios.
+
 ## Contributing
 Contributions are welcome! If you want to contribute to this project, please fork the repository and submit a pull request.
 
