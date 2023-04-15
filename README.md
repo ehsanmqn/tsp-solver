@@ -151,12 +151,13 @@ This is a JSON object representing a vehicle routing problem with time windows (
 ## Project structure
 This is a Python script that defines a service for solving the TSP (Traveling Salesman Problem), VRP (Vehicle Routing Problem), and  VRPTW (Vehicle Routing Problem with Time Windows) optimization problems using OR-Tools, a library for optimization problems developed by Google.
 
-The project contains following modules:
+The project contains following important modules:
 1. **messaging.py**: This file contains necessary functions to handle incoming messages.
 2. **service.py**: The entry point of the project which run the service.
 3. **utils.py**: Contains necessary functions to generate distance and time matrices. 
 4. **vrp_solver.py**: The TSP/VRP solver module.
 5. **vrptw_solver.py**: The VRPTW solver module.
+6. **models.py**: Contains message data models
 
 ```
 tsp-solver/
@@ -166,6 +167,7 @@ tsp-solver/
     tsp_solver/
         __init__.py
         messaging.py
+        models.py
         service.py
         utils.py
         vrp_solver.py
