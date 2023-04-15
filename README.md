@@ -155,7 +155,15 @@ The _process_vrp_message_ and _process_vrptw_message_ functions both take a requ
 
 The _start_service_ function sets up a connection to a message broker specified by the **MESSAGE_BROKER** environment variable, creates input and output queues for TSP messages, and starts consuming messages from the input queue. When a message is received, the _dispatch_message_ function is called to handle it, and the resulting response is sent to the output queue with the same message ID as the incoming message.
 
-# Contributing
+
+## Tests
+To conduct tests against the VRP solver (_ortools_vrp_solver_), there are 9 tests that have been implemented. Please run the following command to execute these tests:
+
+```bash
+python -m unittest
+```
+
+## Contributing
 Contributions are welcome! If you want to contribute to this project, please fork the repository and submit a pull request.
 
 ## Licence
