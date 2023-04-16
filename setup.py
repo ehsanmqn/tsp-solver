@@ -8,13 +8,18 @@ setup(name='tsp-solver',
       packages=find_packages(),
       install_requires=[
           'absl-py==1.4.0',
+          'aio-pika==9.0.5',
+          'aiormq==6.7.4',
+          'idna==3.4',
+          'multidict==6.0.4',
           'numpy==1.24.2',
           'ortools==9.6.2534',
-          'pika==1.3.1',
-          'protobuf==4.22.1',
+          'pamqp==3.2.1',
+          'protobuf==4.22.3',
           'pydantic==1.10.7',
           'scipy==1.10.1',
-          'typing_extensions==4.5.0'
+          'typing_extensions==4.5.0',
+          'yarl==1.8.2'
       ],
       classifiers=[
           "Programming Language :: Python :: 3",
