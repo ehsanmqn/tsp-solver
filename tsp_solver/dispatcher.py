@@ -46,20 +46,13 @@ class Dispatcher(RabbitMQConsumer):
 
         # Publish response message
         await self.channel.default_exchange.publish(
-            aio_pika.Message(body=outbound_message.encode()),
+            aio_pika.Message(
+                body=outbound_message.encode(),
+                correlation_id=str(message_id),
+                reply_to=str(message_id)
+            ),
             routing_key='TSP_OUTPUT_QUEUE',
         )
-
-        # Publish response message
-        # channel.basic_publish(
-        #     exchange='',
-        #     routing_key='TSP_OUTPUT_QUEUE',
-        #     properties=pika.BasicProperties(
-        #         reply_to=str(message_id),
-        #         correlation_id=str(message_id)
-        #     ),
-        #     body=outbound_message
-        # )
 
     def process_vrptw_message(self, request):
         """
