@@ -3,7 +3,7 @@ The aim of this project is to provide a solution for the TSP, VRP, and VRPTW pro
 
 ## Used Technologies
     - Python 3
-    - Pika (RabbitMQ python library)
+    - aio-pika (Async RabbitMQ python library based on asyncio)
     - Ortools (TSP optimizer engine)
     - Pydantic
 
@@ -20,8 +20,16 @@ If you prefer to manually run the project, execute the following commands in the
 virtualenve -p python3 venv
 source venv/bin/activate
 pip install -r requirements.txt
-export MESSAGE_BROKER="localhost"
 python tsp_solver/service.py
+```
+
+The RabbitMQ connection configurations have been configured to read from environment variables or use default values. If you wish to modify the server address configuration, please execute the following commands:
+```bash
+export MESSAGE_BROKER=localhost
+export MESSAGE_BROKER_USERNAME=admin
+export MESSAGE_BROKER_PASSWORD=admin
+export TSP_INPUT_QUEUE=TSP_INPUT_QUEUE
+export TSP_OUTPUT_QUEUE=TSP_OUTPUT_QUEUE
 ```
 
 ## Packaging and Running
@@ -152,12 +160,13 @@ This is a JSON object representing a vehicle routing problem with time windows (
 This is a Python script that defines a service for solving the TSP (Traveling Salesman Problem), VRP (Vehicle Routing Problem), and  VRPTW (Vehicle Routing Problem with Time Windows) optimization problems using OR-Tools, a library for optimization problems developed by Google.
 
 The project contains following important modules:
-1. **messaging.py**: This file contains necessary functions to handle incoming messages.
+1. **dispatcher.py**: This file contains necessary functions to handle incoming messages.
 2. **service.py**: The entry point of the project which run the service.
-3. **utils.py**: Contains necessary functions to generate distance and time matrices. 
+3. **helpers.py**: Contains necessary functions to generate distance and time matrices. 
 4. **vrp_solver.py**: The TSP/VRP solver module.
 5. **vrptw_solver.py**: The VRPTW solver module.
 6. **models.py**: Contains message data models
+7. **abstract_consumer.py**: Defined an abstract class for RabbitMQ consumer based on aio-pika.
 
 ```
 tsp-solver/
@@ -165,18 +174,21 @@ tsp-solver/
         __init__.py
         test_solver.py
     tsp_solver/
+        utils/
+            __init__.py
+            abstract_consumer.py
+            helpers.py
+            models.py
         __init__.py
-        messaging.py
-        models.py
+        dispatcher.py
         service.py
-        utils.py
         vrp_solver.py
         vrptw_solver.py
     setup.py
     main.py
     README.md
 ```
-The script starts by importing necessary libraries like _json_, _logging_, _os_, _pika_, and _BaseModel_ from the _pydantic_ module. It also imports functions and classes from other modules of the **tsp_solver** package such as **_ortools_vrp_solver_**, **_ortools_vrptw_solver_**, **_generate_distance_matrix_**, and **_generate_time_matrix_**.
+The script starts by importing necessary libraries, and _BaseModel_ from the _pydantic_ module. It also imports functions and classes from other modules of the **tsp_solver** package such as **_ortools_vrp_solver_**, **_ortools_vrptw_solver_**, **_generate_distance_matrix_**, and **_generate_time_matrix_**.
 
 The **_VrpRequest_** and **_VrptwRequest_** classes represent the format of incoming messages containing a request to solve the VRP or VRPTW optimization problem respectively, while the _**VrpResponse**_ class represents the format of outgoing messages containing the solution to the optimization problem.
 ```python
@@ -206,11 +218,11 @@ class VrpResponse:
         self.code = code
         self.message = message
 ```
-The _**dispatch_message**_ function processes incoming messages based on their _**message_type**_ attribute, which can be either 'VRP', 'TSP' or 'VRPTW'. The function creates an instance of the appropriate request class based on the message type, then passes it to the appropriate processing function (_**process_vrp_message**_ or _**process_vrptw_message**_). If the message type is not supported, the function returns a response with error code 400 and message "Not supported message type." If there is a problem with the request data, the function returns a response with error code 400 and an error message.
+The _**Dispatcher**_ class processes incoming messages based on their _**message_type**_ attribute, which can be either 'VRP', 'TSP' or 'VRPTW'. The function creates an instance of the appropriate request class based on the message type, then passes it to the appropriate processing function (_**process_vrp_message**_ or _**process_vrptw_message**_). If the message type is not supported, the function returns a response with error code 400 and message "Not supported message type." If there is a problem with the request data, the function returns a response with error code 400 and an error message.
 ```python
-def dispatch_message(channel, method, properties, body):
+class Dispatcher(RabbitMQConsumer):
     """
-    Process incoming message regarding the message type
+    Message dispatcher class for handling incoming messages
     """
     ...
 ```
@@ -228,7 +240,7 @@ def process_vrptw_message(request, channel):
     """
     ...
 ```
-The _**start_service**_ function sets up a connection to a message broker specified by the **MESSAGE_BROKER** environment variable, creates input and output queues for TSP messages, and starts consuming messages from the input queue. When a message is received, the _**dispatch_message**_ function is called to handle it, and the resulting response is sent to the output queue with the same message ID as the incoming message.
+The _**start_service**_ function sets up a connection to a message broker specified by the **MESSAGE_BROKER** environment variable, creates input and output queues for TSP messages, and starts consuming messages from the input queue. When a message is received, the _**Dispatcher**_ class is used to handle it, and the resulting response is sent to the output queue with the same message ID as the incoming message.
 ```python
 def start_service():
     ...
@@ -244,19 +256,17 @@ python -m unittest
 ## Improvement
 Here are a few suggestions for improving this code:
 
-1. The better approach for handling messages in real projects is asynchronously consume messages using the asyncio and the aio-pika library as AMQP client.
+1. Add error handling: Although there is some basic error handling in place, it could be improved to handle more edge cases and provide more informative error messages. For example, if the input message is malformed, the service should return an appropriate error response. In addition, errors that occur during processing, such as network errors or solver failures, should be handled more gracefully.
 
-2. Add error handling: Although there is some basic error handling in place, it could be improved to handle more edge cases and provide more informative error messages. For example, if the input message is malformed, the service should return an appropriate error response. In addition, errors that occur during processing, such as network errors or solver failures, should be handled more gracefully.
+2. Add support for more problem types: Currently, the service only supports three problem types: VRP, TSP, and VRPTW. It would be useful to add support for other types of optimization problems, such as vehicle routing with pickups and deliveries (VRPD), or capacitated vehicle routing problem (CVRP).
 
-3. Add support for more problem types: Currently, the service only supports three problem types: VRP, TSP, and VRPTW. It would be useful to add support for other types of optimization problems, such as vehicle routing with pickups and deliveries (VRPD), or capacitated vehicle routing problem (CVRP).
+3. Improve performance: The current implementation uses a simple round-robin approach for message distribution, which may not be optimal for large volumes of traffic. To improve performance, the service could use load balancing techniques, such as using multiple workers or implementing a more sophisticated message distribution algorithm.
 
-4. Improve performance: The current implementation uses a simple round-robin approach for message distribution, which may not be optimal for large volumes of traffic. To improve performance, the service could use load balancing techniques, such as using multiple workers or implementing a more sophisticated message distribution algorithm.
+4. Add authentication and authorization: Currently, anyone can send messages to the input queue and receive responses from the output queue, which could pose security risks. It would be useful to add authentication and authorization mechanisms to restrict access to authorized users only.
 
-5. Add authentication and authorization: Currently, anyone can send messages to the input queue and receive responses from the output queue, which could pose security risks. It would be useful to add authentication and authorization mechanisms to restrict access to authorized users only.
+5. Use a more robust messaging system: While RabbitMQ is a popular and reliable messaging system, it may not be the best choice for all use cases. Depending on the specific requirements of the service, a different messaging system or architecture, such as Apache Kafka or event-driven microservices, may be more suitable.
 
-6. Use a more robust messaging system: While RabbitMQ is a popular and reliable messaging system, it may not be the best choice for all use cases. Depending on the specific requirements of the service, a different messaging system or architecture, such as Apache Kafka or event-driven microservices, may be more suitable.
-
-7. The existing method of using message ID as an identifier for retrieving messages from a queue functions flawlessly when a universally unique identifier (UUID) is employed. However, in practice, if two requests with the same message ID are submitted, the response will be provided to them in a first-in, first-out (FIFO) manner, which may not accurately reflect real-world scenarios.
+6. The existing method of using message ID as an identifier for retrieving messages from a queue functions flawlessly when a universally unique identifier (UUID) is employed. However, in practice, if two requests with the same message ID are submitted, the response will be provided to them in a first-in, first-out (FIFO) manner, which may not accurately reflect real-world scenarios.
 
 ## Contributing
 Contributions are welcome! If you want to contribute to this project, please fork the repository and submit a pull request.
