@@ -1,4 +1,5 @@
 import asyncio
+import os
 import sys
 import logging
 import aio_pika
@@ -10,8 +11,9 @@ logging.basicConfig(filename='../tsp_solver.log', level=logging.DEBUG, format='%
 
 
 async def start_service(consumer_class) -> None:
+    # Creat connection
     connection = await aio_pika.connect_robust(
-        url="amqp://admin:admin@localhost/"
+        url="amqp://admin:admin@{}/".format(os.environ.get('MESSAGE_BROKER'))
     )
 
     input_queue_name = "TSP_INPUT_QUEUE"
@@ -45,7 +47,7 @@ def main():
     except asyncio.CancelledError:
         logging.info('Main task cancelled')
     except Exception as e:
-        logging.exception('Something unexpected happened')
+        logging.exception('Something unexpected happened: ', e)
     finally:
         logging.info("Shutdown complete")
 
