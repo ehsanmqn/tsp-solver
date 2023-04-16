@@ -3,6 +3,7 @@ from abc import ABCMeta, abstractmethod
 
 from aio_pika.message import IncomingMessage
 from aio_pika.queue import Queue
+from aio_pika.channel import Channel
 
 
 async def mark_message_processed(message: IncomingMessage):
@@ -21,7 +22,7 @@ class RabbitMQConsumer(metaclass=ABCMeta):
     RabbitMQ consumer abstract class responsible for consuming data from the queue.
     """
 
-    def __init__(self, queue: Queue, iterator_timeout: int = 5, iterator_timeout_sleep: float = 5.0, *args, **kwargs, ):
+    def __init__(self, channel: Channel, queue: Queue, iterator_timeout: int = 5, iterator_timeout_sleep: float = 5.0, *args, **kwargs, ):
         """
         :param queue: aio_pika queue object
         :param iterator_timeout: The queue iterator raises TimeoutError if no message comes for this time and iterating starts again (In seconds)
@@ -30,6 +31,7 @@ class RabbitMQConsumer(metaclass=ABCMeta):
         :param kwargs:
         """
 
+        self.channel = channel
         self.queue = queue
         self.iterator_timeout = iterator_timeout
         self.iterator_timeout_sleep = iterator_timeout_sleep
@@ -42,13 +44,13 @@ class RabbitMQConsumer(metaclass=ABCMeta):
                 try:
                     async for message in queue_iterator:
                         if self.queue.name in message.body.decode():
-                            continue
-
-                        # Process incoming message
-                        await self.process_message(message)
+                            break
 
                         # Send ack to RabbitMQ
                         await mark_message_processed(message)
+
+                        # Process incoming message
+                        await self.process_message(message)
 
                         if not self.consuming_flag:
                             break
