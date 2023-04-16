@@ -13,11 +13,13 @@ logging.basicConfig(filename='../tsp_solver.log', level=logging.DEBUG, format='%
 async def start_service(consumer_class) -> None:
     # Creat connection
     connection = await aio_pika.connect_robust(
-        url="amqp://admin:admin@{}/".format(os.environ.get('MESSAGE_BROKER'))
+        url="amqp://{}:{}@{}/".format(os.environ.get('MESSAGE_BROKER_USERNAME', 'admin'),
+                                      os.environ.get('MESSAGE_BROKER_PASSWORD', 'admin'),
+                                      os.environ.get('MESSAGE_BROKER', 'localhost'))
     )
 
-    input_queue_name = "TSP_INPUT_QUEUE"
-    output_queue_name = "TSP_OUTPUT_QUEUE"
+    input_queue_name = os.environ.get('TSP_INPUT_QUEUE', 'TSP_INPUT_QUEUE')
+    output_queue_name = os.environ.get('TSP_OUTPUT_QUEUE', 'TSP_OUTPUT_QUEUE')
 
     try:
         async with connection:
