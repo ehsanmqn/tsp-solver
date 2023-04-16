@@ -19,7 +19,7 @@ async def mark_message_processed(message: IncomingMessage):
 
 class RabbitMQConsumer(metaclass=ABCMeta):
     """
-    RabbitMQ consumer abstract class responsible for consuming data from the queue.
+    RabbitMQ consumer abstract class responsible for consuming data from the queue
     """
 
     def __init__(self, channel: Channel, queue: Queue, iterator_timeout: int = 5, iterator_timeout_sleep: float = 5.0, *args, **kwargs, ):
@@ -43,17 +43,15 @@ class RabbitMQConsumer(metaclass=ABCMeta):
             while self.consuming_flag:
                 try:
                     async for message in queue_iterator:
-                        if self.queue.name in message.body.decode():
-                            break
+                        async with message.process():
+                            # Process incoming message
+                            await self.process_message(message)
 
-                        # Send ack to RabbitMQ
-                        await mark_message_processed(message)
+                            if self.queue.name in message.body.decode():
+                                break
 
-                        # Process incoming message
-                        await self.process_message(message)
-
-                        if not self.consuming_flag:
-                            break
+                            if not self.consuming_flag:
+                                break
                 except asyncio.exceptions.TimeoutError:
                     await self.on_finish()
                     if self.consuming_flag:
