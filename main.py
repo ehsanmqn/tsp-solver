@@ -7,7 +7,7 @@ import aio_pika
 from tsp_solver.dispatcher import Dispatcher
 
 # Configure logging settings
-logging.basicConfig(filename='../tsp_solver.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
+logging.basicConfig(filename='tsp_solver.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 
 
 async def start_service(consumer_class) -> None:
